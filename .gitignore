@@ -1,0 +1,36 @@
+# Maven build artifacts
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+logs/
+*.log
+
+# Runtime files
+offsets.dat
+*.dat
+
+# Configuration with sensitive data
+# Uncomment if you don't want to commit your config
+# config.properties
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+postgres-data/
+agent-data/
+agent-logs/
+apikey
