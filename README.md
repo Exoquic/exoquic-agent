@@ -9,7 +9,7 @@ A lightweight agent that captures data changes from PostgreSQL databases and str
 - **Lightweight**: Uses Debezium's embedded engine without requiring a full Kafka Connect deployment
 - **Secure**: Establishes outbound-only connections, ensuring your databases remain secure behind your firewalls
 - **Resilient**: Includes automatic reconnection, retry mechanisms, and error handling
-- **Configurable**: Supports extensive configuration options for database connection, replication settings, and HTTP communication
+- **Configurable**: Supports extensive configuration through environment variables
 - **Containerized**: Available as both a standalone JAR and Docker container
 
 ## Requirements
@@ -22,11 +22,11 @@ A lightweight agent that captures data changes from PostgreSQL databases and str
 ### Using the JAR file
 
 1. Download the latest JAR file from the releases page
-2. Create a configuration file (see [Configuration](#configuration))
+2. Set the required environment variables (see [Configuration](#configuration))
 3. Run the agent:
 
 ```bash
-java -jar exoquic-agent.jar /path/to/config.properties
+java -jar exoquic-agent.jar
 ```
 
 ### Using Docker
@@ -37,23 +37,18 @@ java -jar exoquic-agent.jar /path/to/config.properties
 docker pull exoquic/postgres-agent
 ```
 
-2. Create a configuration file (see [Configuration](#configuration))
-3. Run the container:
+2. Run the container with environment variables:
 
 ```bash
-docker run -v /path/to/config.properties:/app/config.properties exoquic/postgres-agent
+docker run \
+  -e PG_HOST=localhost \
+  -e PG_PORT=5432 \
+  -e PG_DATABASE=mydb \
+  -e PG_USER=postgres \
+  -e PG_PASSWORD=postgres \
+  -e EXOQUIC_API_KEY=your-api-key-here \
+  exoquic/postgres-agent
 ```
-
-### Using Docker Compose
-
-1. Clone this repository
-2. Update the `docker-compose.yml` file with your configuration
-3. Run the containers:
-
-```bash
-docker-compose up -d
-```
-
 ## Automatic PostgreSQL Configuration
 
 The agent includes an automatic configuration validator that ensures your PostgreSQL server is properly configured for logical replication. On startup, it:
@@ -89,47 +84,39 @@ The validator will:
 
 ## Configuration
 
-The agent supports both property file configuration and environment variables. For cloud platforms like Railway.app and Heroku, standard PostgreSQL environment variables are automatically recognized.
+The agent is configured entirely through environment variables.
 
-### Standard PostgreSQL Environment Variables
+### Required Environment Variables
 
-The agent automatically recognizes these standard environment variables:
-- `PGHOST` - Database host
-- `PGPORT` - Database port
-- `PGDATABASE` - Database name
-- `PGUSER` - Username
-- `PGPASSWORD` - Password
+#### PostgreSQL Settings
+- `PG_HOST` - Database host (default: localhost)
+- `PG_PORT` - Database port (default: 5432)
+- `PG_DATABASE` - Database name
+- `PG_USER` - Username
+- `PG_PASSWORD` - Password
+- `PG_SCHEMA` - Schema name (default: public)
 
-### Properties File Configuration
+#### Exoquic Settings
+- `EXOQUIC_API_KEY` - Your Exoquic API key
 
-```properties
-# PostgreSQL Connection Settings (env vars: PGHOST, PGPORT, etc.)
-pg.host=localhost
-pg.port=5432
-pg.database=mydb
-pg.user=postgres
-pg.password=postgres
-pg.schema=public
+### Optional Environment Variables
 
-# Replication Settings
-replication.slot.name=exoquic_slot
-replication.publication.name=exoquic_pub
+#### Replication Settings
+- `REPLICATION_SLOT_NAME` - Replication slot name (default: exoquic_agent_slot)
+- `PUBLICATION_NAME` - Publication name (default: exoquic_agent_pub)
 
-# Exoquic HTTP Settings
-exoquic.baseurl=https://kafka.exoquic.com/
-exoquic.api.key=your-api-key-here
-http.connection.timeout=5000
-http.socket.timeout=30000
+#### HTTP Settings
+- `HTTP_CONNECTION_TIMEOUT` - HTTP connection timeout in ms (default: 5000)
+- `HTTP_SOCKET_TIMEOUT` - HTTP socket timeout in ms (default: 30000)
 
-# Retry Settings
-retry.max=5
-retry.initial.delay.ms=1000
-retry.max.delay.ms=60000
+#### Retry Settings
+- `MAX_RETRIES` - Maximum number of retries (default: 5)
+- `INITIAL_RETRY_DELAY_MS` - Initial retry delay in ms (default: 1000)
+- `MAX_RETRY_DELAY_MS` - Maximum retry delay in ms (default: 60000)
 
-# Performance Settings
-poll.interval.ms=1000
-batch.size=100
-```
+#### Performance Settings
+- `POLL_INTERVAL_MS` - Poll interval in ms (default: 1000)
+- `BATCH_SIZE` - Batch size (default: 100)
 
 ## Building from Source
 
