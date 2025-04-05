@@ -144,39 +144,35 @@ public class PostgresConfigValidator {
     }
 
     /**
-     * Connects to PostgreSQL with retry logic.
+     * Connects to the postgresql server, retries forever.
      */
     private Connection connectWithRetry() {
         String url = String.format("jdbc:postgresql://%s:%d/%s",
                 config.getDbHost(), config.getDbPort(), config.getDbName());
         
-        Exception lastException = null;
-        Duration retryDelay = INITIAL_RETRY_DELAY;
+        Exception lastException;
 
-        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        // Loops until successfully connected to the postgres server.
+        while (true) {
             try {
-                logger.info("Attempting to connect to PostgreSQL (attempt {}/{})", attempt, MAX_RETRIES);
+                logger.info("Attempting to connect to PostgreSQL..");
                 Connection conn = DriverManager.getConnection(url, config.getDbUser(), config.getDbPassword());
                 conn.setAutoCommit(true);
                 logger.info("Successfully connected to PostgreSQL");
                 return conn;
             } catch (SQLException e) {
                 lastException = e;
-                logger.warn("Failed to connect (attempt {}/{}): {}", attempt, MAX_RETRIES, e.getMessage());
-                
-                if (attempt < MAX_RETRIES) {
-                    try {
-                        Thread.sleep(retryDelay.toMillis());
-                        retryDelay = retryDelay.multipliedBy(2); // Exponential backoff
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
-                    }
+
+                try {
+                    Thread.sleep(INITIAL_RETRY_DELAY.toMillis());
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
                 }
             }
         }
 
-        logger.error("Failed to connect after {} attempts", MAX_RETRIES, lastException);
+        logger.error("Failed to connect", lastException);
         return null;
     }
 

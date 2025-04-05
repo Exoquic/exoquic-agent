@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 
 /**
- * Processes Debezium change events and transforms them into the format expected by the Exoquic platform.
+ * Processes Debezium change events and transforms them into the format expected by Exoquic.
  * Uses a reactive approach with Project Reactor.
  */
 public class ReactiveEventProcessor {

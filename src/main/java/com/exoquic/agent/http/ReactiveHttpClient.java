@@ -86,7 +86,7 @@ public class ReactiveHttpClient {
     }
     
     /**
-     * Sends an event to the Exoquic platform.
+     * Sends an event to Exoquic
      * 
      * @param payload JSON payload to send
      * @param topicName Name of the topic to send the event to
