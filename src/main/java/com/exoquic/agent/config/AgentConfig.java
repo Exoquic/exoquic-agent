@@ -74,8 +74,8 @@ public class AgentConfig {
         maxRetryDelayMs = getEnvAsLongOrDefault("MAX_RETRY_DELAY_MS", 60000L);
         
         // Performance settings
-        pollIntervalMs = getEnvAsIntOrDefault("POLL_INTERVAL_MS", 1000);
-        batchSize = getEnvAsIntOrDefault("BATCH_SIZE", 100);
+        pollIntervalMs = getEnvAsIntOrDefault("POLL_INTERVAL_MS", 20);
+        batchSize = getEnvAsIntOrDefault("BATCH_SIZE", 64);
     }
     
     /**
