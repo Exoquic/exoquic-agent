@@ -7,8 +7,6 @@ LABEL description="Exoquic PostgreSQL Agent for capturing and streaming database
 WORKDIR /app
 
 # Create volume for offsets and logs
-VOLUME /app/data
-VOLUME /app/logs
 
 # Copy JAR file
 COPY target/exoquic-agent.jar /app/
