@@ -23,6 +23,7 @@ public class AgentConfig {
     private String publicationName;
     
     // HTTP settings
+    private String environment;
     private String exoquicBaseUrl;
     private String apiKey;
     private int connectionTimeout;
@@ -50,6 +51,9 @@ public class AgentConfig {
      * Loads configuration from environment variables.
      */
     private void loadFromEnvironment() {
+        // Exoquic settings
+        environment = getRequiredEnv("EXOQUIC_ENV");
+
         // Database connection settings
         dbHost = getRequiredEnv("PGHOST");
         dbPort = getEnvAsIntOrDefault("PGPORT", 5432);
@@ -63,7 +67,9 @@ public class AgentConfig {
         publicationName = getEnvOrDefault("PUBLICATION_NAME", "exoquic_agent_pub");
         
         // HTTP settings
-        exoquicBaseUrl = getEnvOrDefault("EXOQUIC_BASE_URL", "https://db.exoquic.com/");
+        exoquicBaseUrl = getEnvOrDefault("EXOQUIC_BASE_URL", String.format("https://%s.db.exoquic.com/", environment));
+
+
         apiKey = getRequiredEnv("EXOQUIC_API_KEY");
         connectionTimeout = getEnvAsIntOrDefault("HTTP_CONNECTION_TIMEOUT", 5000);
         socketTimeout = getEnvAsIntOrDefault("HTTP_SOCKET_TIMEOUT", 30000);
@@ -184,6 +190,9 @@ public class AgentConfig {
         if (batchSize <= 0) {
             throw new IllegalArgumentException("Invalid batch size: " + batchSize);
         }
+        if (!"dev".equals(environment) && !"prod".equals(environment)) {
+            throw new IllegalArgumentException("Invalid environment " + environment + ". Expected either 'dev' or 'prod'");
+        }
     }
     
     // Getters
@@ -254,5 +263,13 @@ public class AgentConfig {
     
     public int getBatchSize() {
         return batchSize;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 }
