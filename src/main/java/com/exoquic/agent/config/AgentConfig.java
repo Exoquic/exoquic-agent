@@ -67,7 +67,7 @@ public class AgentConfig {
         publicationName = getEnvOrDefault("PUBLICATION_NAME", "exoquic_agent_pub");
         
         // HTTP settings
-        exoquicBaseUrl = getEnvOrDefault("EXOQUIC_BASE_URL", String.format("https://%s.db.exoquic.com/", environment));
+        exoquicBaseUrl = getEnvOrDefault("EXOQUIC_BASE_URL", String.format("https://%s.kafkahttp.exoquic.com/", environment));
 
 
         apiKey = getRequiredEnv("EXOQUIC_API_KEY");
