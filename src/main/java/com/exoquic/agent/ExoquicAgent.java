@@ -17,14 +17,11 @@ public class ExoquicAgent {
     private final Disposable subscription;
     
     /**
-     * Creates a new ExoquicAgent with the specified configuration path.
-     * 
-     * @param configPath Path to the configuration file
+     * Creates a new ExoquicAgent using environment variables for configuration.
      */
-    public ExoquicAgent(String configPath) {
-        logger.info("Loading configuration from {}", configPath);
+    public ExoquicAgent() {
+        logger.info("Loading configuration from environment variables");
         AgentConfig config = new AgentConfig();
-        config.loadFromFile(configPath);
         
         ReactiveHttpClient httpClient = new ReactiveHttpClient(config);
         ReactiveEventProcessor eventProcessor = new ReactiveEventProcessor(config, httpClient);
@@ -96,13 +93,11 @@ public class ExoquicAgent {
      */
     public static void main(String[] args) {
         try {
-            // Get configuration path from command line arguments or use default
-            String configPath = args.length > 0 ? args[0] : "config.properties";
-            logger.info("Starting Exoquic PostgreSQL Agent with configuration: {}", configPath);
+            logger.info("Starting Exoquic PostgreSQL Agent using environment variables");
             
             try {
                 // Start the agent
-                ExoquicAgent agent = new ExoquicAgent(configPath);
+                ExoquicAgent agent = new ExoquicAgent();
                 agent.start();
                 
                 // Keep the application running until interrupted

@@ -3,113 +3,139 @@ package com.exoquic.agent.config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 /**
  * Configuration class for the Exoquic PostgreSQL Agent.
- * Handles loading and validating configuration properties from a file or environment variables.
+ * Handles loading and validating configuration from environment variables.
  */
 public class AgentConfig {
     private static final Logger logger = LogManager.getLogger(AgentConfig.class);
     
     // Database connection
-    private String dbHost = "localhost";
-    private int dbPort = 5432;
+    private String dbHost;
+    private int dbPort;
     private String dbName;
     private String dbUser;
     private String dbPassword;
-    private String dbSchema = "public";
+    private String dbSchema;
 
-    // Standard PostgreSQL environment variables
-    private static final String[] PG_ENV_VARS = {
-        "PGHOST",
-        "PGPORT",
-        "PGDATABASE",
-        "PGUSER",
-        "PGPASSWORD"
-    };
-    
     // Replication settings
-    private String replicationSlotName = "exoquic_agent_slot";
-    private String publicationName = "exoquic_agent_pub";
+    private String replicationSlotName;
+    private String publicationName;
     
     // HTTP settings
     private String exoquicBaseUrl;
     private String apiKey;
-    private int connectionTimeout = 5000;
-    private int socketTimeout = 30000;
+    private int connectionTimeout;
+    private int socketTimeout;
     
     // Retry settings
-    private int maxRetries = 5;
-    private long initialRetryDelayMs = 1000;
-    private long maxRetryDelayMs = 60000;
+    private int maxRetries;
+    private long initialRetryDelayMs;
+    private long maxRetryDelayMs;
     
     // Performance settings
-    private int pollIntervalMs = 1000;
-    private int batchSize = 100;
+    private int pollIntervalMs;
+    private int batchSize;
     
     /**
-     * Default constructor with default values.
+     * Constructor that loads configuration from environment variables.
      */
     public AgentConfig() {
-        // Default constructor with default values
+        loadFromEnvironment();
+        validate();
+        logger.info("Configuration loaded successfully from environment variables");
     }
     
     /**
-     * Loads configuration from a properties file.
-     * 
-     * @param configPath Path to the properties file
-     * @throws RuntimeException if the configuration file cannot be loaded or is invalid
+     * Loads configuration from environment variables.
      */
-    public void loadFromFile(String configPath) {
-        Properties props = new Properties();
+    private void loadFromEnvironment() {
+        // Database connection settings
+        dbHost = getRequiredEnv("PGHOST");
+        dbPort = getEnvAsIntOrDefault("PGPORT", 5432);
+        dbName = getRequiredEnv("PGDATABASE");
+        dbUser = getRequiredEnv("PGUSER");
+        dbPassword = getRequiredEnv("PGPASSWORD");
+        dbSchema = getEnvOrDefault("PGSCHEMA", "public");
         
-        try (InputStream input = new FileInputStream(configPath)) {
-            props.load(input);
-            
-            // Check PostgreSQL environment variables first
-            String pgHost = System.getenv("PGHOST");
-            String pgPort = System.getenv("PGPORT");
-            String pgDatabase = System.getenv("PGDATABASE");
-            String pgUser = System.getenv("PGUSER");
-            String pgPassword = System.getenv("PGPASSWORD");
-
-            // Use environment variables if available, otherwise fall back to properties
-            dbHost = pgHost != null ? pgHost : getProperty(props, "pg.host", "db.host", dbHost);
-            dbPort = pgPort != null ? Integer.parseInt(pgPort) : getIntProperty(props, "pg.port", "db.port", dbPort);
-            dbName = pgDatabase != null ? pgDatabase : getRequiredProperty(props, "pg.database", "db.name");
-            dbUser = pgUser != null ? pgUser : getRequiredProperty(props, "pg.user", "db.user");
-            dbPassword = pgPassword != null ? pgPassword : getRequiredProperty(props, "pg.password", "db.password");
-            dbSchema = getProperty(props, "pg.schema", "db.schema", dbSchema);
-            
-            // Replication settings
-            replicationSlotName = getProperty(props, "replication.slot.name", "replication.slot.name", replicationSlotName);
-            publicationName = getProperty(props, "replication.publication.name", "replication.publication.name", publicationName);
-            
-            // HTTP settings
-            exoquicBaseUrl = getRequiredProperty(props, "exoquic.baseurl", "exoquic.baseurl");
-            apiKey = getRequiredProperty(props, "exoquic.api.key", "exoquic.api.key");
-            connectionTimeout = getIntProperty(props, "http.connection.timeout", "http.connection.timeout", connectionTimeout);
-            socketTimeout = getIntProperty(props, "http.socket.timeout", "http.socket.timeout", socketTimeout);
-            
-            // Retry settings
-            maxRetries = getIntProperty(props, "retry.max", "retry.max", maxRetries);
-            initialRetryDelayMs = getLongProperty(props, "retry.initial.delay.ms", "retry.initial.delay.ms", initialRetryDelayMs);
-            maxRetryDelayMs = getLongProperty(props, "retry.max.delay.ms", "retry.max.delay.ms", maxRetryDelayMs);
-            
-            // Performance settings
-            pollIntervalMs = getIntProperty(props, "poll.interval.ms", "poll.interval.ms", pollIntervalMs);
-            batchSize = getIntProperty(props, "batch.size", "batch.size", batchSize);
-            
-            // Validate configuration
-            validate();
-            
-            logger.info("Configuration loaded successfully from {}", configPath);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load configuration from " + configPath, e);
+        // Replication settings
+        replicationSlotName = getEnvOrDefault("REPLICATION_SLOT_NAME", "exoquic_agent_slot");
+        publicationName = getEnvOrDefault("PUBLICATION_NAME", "exoquic_agent_pub");
+        
+        // HTTP settings
+        exoquicBaseUrl = getEnvOrDefault("EXOQUIC_BASE_URL", "https://db.exoquic.com/");
+        apiKey = getRequiredEnv("EXOQUIC_API_KEY");
+        connectionTimeout = getEnvAsIntOrDefault("HTTP_CONNECTION_TIMEOUT", 5000);
+        socketTimeout = getEnvAsIntOrDefault("HTTP_SOCKET_TIMEOUT", 30000);
+        
+        // Retry settings
+        maxRetries = getEnvAsIntOrDefault("MAX_RETRIES", 5);
+        initialRetryDelayMs = getEnvAsLongOrDefault("INITIAL_RETRY_DELAY_MS", 1000L);
+        maxRetryDelayMs = getEnvAsLongOrDefault("MAX_RETRY_DELAY_MS", 60000L);
+        
+        // Performance settings
+        pollIntervalMs = getEnvAsIntOrDefault("POLL_INTERVAL_MS", 1000);
+        batchSize = getEnvAsIntOrDefault("BATCH_SIZE", 100);
+    }
+    
+    /**
+     * Gets a required environment variable.
+     * 
+     * @param key Environment variable key
+     * @return Environment variable value
+     * @throws IllegalArgumentException if the environment variable is not found
+     */
+    private String getRequiredEnv(String key) {
+        String value = System.getenv(key);
+        if (value == null || value.isEmpty()) {
+            throw new IllegalArgumentException("Required environment variable not found: " + key);
+        }
+        return value;
+    }
+    
+    /**
+     * Gets an environment variable with a default value.
+     * 
+     * @param key Environment variable key
+     * @param defaultValue Default value
+     * @return Environment variable value or default value if not found
+     */
+    private String getEnvOrDefault(String key, String defaultValue) {
+        String value = System.getenv(key);
+        return (value != null && !value.isEmpty()) ? value : defaultValue;
+    }
+    
+    /**
+     * Gets an integer environment variable with a default value.
+     * 
+     * @param key Environment variable key
+     * @param defaultValue Default value
+     * @return Environment variable value as integer or default value if not found
+     * @throws NumberFormatException if the environment variable value is not a valid integer
+     */
+    private int getEnvAsIntOrDefault(String key, int defaultValue) {
+        String value = System.getenv(key);
+        try {
+            return (value != null && !value.isEmpty()) ? Integer.parseInt(value) : defaultValue;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid integer value for environment variable " + key + ": " + value, e);
+        }
+    }
+    
+    /**
+     * Gets a long environment variable with a default value.
+     * 
+     * @param key Environment variable key
+     * @param defaultValue Default value
+     * @return Environment variable value as long or default value if not found
+     * @throws NumberFormatException if the environment variable value is not a valid long
+     */
+    private long getEnvAsLongOrDefault(String key, long defaultValue) {
+        String value = System.getenv(key);
+        try {
+            return (value != null && !value.isEmpty()) ? Long.parseLong(value) : defaultValue;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid long value for environment variable " + key + ": " + value, e);
         }
     }
     
@@ -157,100 +183,6 @@ public class AgentConfig {
         }
         if (batchSize <= 0) {
             throw new IllegalArgumentException("Invalid batch size: " + batchSize);
-        }
-    }
-    
-    /**
-     * Gets a required property from the properties object.
-     * Checks both new (pg.*) and old (db.*) property formats.
-     * 
-     * @param props Properties object
-     * @param pgKey New property key format (pg.*)
-     * @param dbKey Old property key format (db.*)
-     * @return Property value
-     * @throws IllegalArgumentException if the property is not found
-     */
-    private String getRequiredProperty(Properties props, String pgKey, String dbKey) {
-        // Try new format first
-        String value = props.getProperty(pgKey);
-        if (value == null || value.isEmpty()) {
-            // Try old format
-            value = props.getProperty(dbKey);
-        }
-        
-        if (value == null || value.isEmpty()) {
-            // Check environment variables
-            String envKey = dbKey.replace('.', '_').toUpperCase();
-            value = System.getenv(envKey);
-            
-            if (value == null || value.isEmpty()) {
-                throw new IllegalArgumentException("Required property not found: " + pgKey + " or " + dbKey);
-            }
-        }
-        return value;
-    }
-    
-    /**
-     * Gets a property from the properties object with a default value.
-     * Checks both new (pg.*) and old (db.*) property formats.
-     * 
-     * @param props Properties object
-     * @param pgKey New property key format (pg.*)
-     * @param dbKey Old property key format (db.*)
-     * @param defaultValue Default value
-     * @return Property value or default value if not found
-     */
-    private String getProperty(Properties props, String pgKey, String dbKey, String defaultValue) {
-        // Try new format first
-        String value = props.getProperty(pgKey);
-        if (value == null || value.isEmpty()) {
-            // Try old format
-            value = props.getProperty(dbKey);
-        }
-        
-        if (value == null || value.isEmpty()) {
-            // Check environment variables
-            String envKey = dbKey.replace('.', '_').toUpperCase();
-            value = System.getenv(envKey);
-            
-            if (value == null || value.isEmpty()) {
-                return defaultValue;
-            }
-        }
-        return value;
-    }
-    
-    /**
-     * Gets an integer property from the properties object with a default value.
-     * 
-     * @param props Properties object
-     * @param defaultValue Default value
-     * @return Property value as integer or default value if not found
-     * @throws NumberFormatException if the property value is not a valid integer
-     */
-    private int getIntProperty(Properties props, String pgKey, String dbKey, int defaultValue) {
-        String value = getProperty(props, pgKey, dbKey, String.valueOf(defaultValue));
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid integer value for property " + pgKey + " or " + dbKey + ": " + value, e);
-        }
-    }
-    
-    /**
-     * Gets a long property from the properties object with a default value.
-     * 
-     * @param props Properties object
-     * @param defaultValue Default value
-     * @return Property value as long or default value if not found
-     * @throws NumberFormatException if the property value is not a valid long
-     */
-    private long getLongProperty(Properties props, String pgKey, String dbKey, long defaultValue) {
-        String value = getProperty(props, pgKey, dbKey, String.valueOf(defaultValue));
-        try {
-            return Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid long value for property " + pgKey + " or " + dbKey + ": " + value, e);
         }
     }
     
