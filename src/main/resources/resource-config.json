@@ -1,0 +1,20 @@
+{
+  "resources": [
+    {
+      "pattern": ".*\\.properties$"
+    },
+    {
+      "pattern": "simplelogger\\.properties$"
+    },
+    {
+      "pattern": ".*\\.xml$"
+    },
+    {
+      "pattern": "META-INF/services/.*"
+    },
+    {
+      "pattern": "schema/.*"
+    }
+  ],
+  "bundles": []
+}

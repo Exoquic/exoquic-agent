@@ -17,6 +17,8 @@
         <spring.webflux.version>6.0.11</spring.webflux.version>
         <log4j.version>2.20.0</log4j.version>
         <resilience4j.version>2.1.0</resilience4j.version>
+        <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
+        <imageName>exoquic-agent</imageName>
     </properties>
 
     <dependencies>
@@ -72,19 +74,14 @@
         
         <!-- Logging -->
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.17</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.17</version>
         </dependency>
         
         <!-- Resilience4j for circuit breaking -->
@@ -132,6 +129,34 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>${native.maven.plugin.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>build-native</id>
+                        <goals>
+                            <goal>compile-no-fork</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <imageName>${imageName}</imageName>
+                    <mainClass>com.exoquic.agent.ExoquicAgent</mainClass>
+                    <buildArgs>
+                        <buildArg>--verbose</buildArg>
+                        <buildArg>--no-fallback</buildArg>
+                        <buildArg>--enable-url-protocols=https</buildArg>
+                        <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                        <buildArg>--initialize-at-build-time=org.slf4j</buildArg>
+                        <buildArg>-H:ReflectionConfigurationFiles=${project.basedir}/src/main/resources/reflect-config.json</buildArg>
+                        <buildArg>-H:ResourceConfigurationFiles=${project.basedir}/src/main/resources/resource-config.json</buildArg>
+                    </buildArgs>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.6.0</version>
@@ -164,4 +189,42 @@
             </plugin>
         </plugins>
     </build>
+    
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <imageName>${imageName}</imageName>
+                            <mainClass>com.exoquic.agent.ExoquicAgent</mainClass>
+                            <buildArgs>
+                                <buildArg>--verbose</buildArg>
+                                <buildArg>--no-fallback</buildArg>
+                                <buildArg>--enable-url-protocols=https</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <buildArg>--initialize-at-build-time=org.slf4j</buildArg>
+                                <buildArg>-H:ReflectionConfigurationFiles=${project.basedir}/src/main/resources/reflect-config.json</buildArg>
+                                <buildArg>-H:ResourceConfigurationFiles=${project.basedir}/src/main/resources/resource-config.json</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

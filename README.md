@@ -11,6 +11,7 @@ A lightweight agent that captures data changes from PostgreSQL databases and str
 - **Resilient**: Includes automatic reconnection, retry mechanisms, and error handling
 - **Configurable**: Supports extensive configuration through environment variables
 - **Containerized**: Available as both a standalone JAR and Docker container
+- **Native Image Support**: Can be compiled to a native executable for faster startup and lower memory footprint
 
 ## Requirements
 

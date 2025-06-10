@@ -1,14 +1,14 @@
 package com.exoquic.agent.config;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration class for the Exoquic PostgreSQL Agent.
  * Handles loading and validating configuration from environment variables.
  */
 public class AgentConfig {
-    private static final Logger logger = LogManager.getLogger(AgentConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(AgentConfig.class);
     
     // Database connection
     private String dbHost;

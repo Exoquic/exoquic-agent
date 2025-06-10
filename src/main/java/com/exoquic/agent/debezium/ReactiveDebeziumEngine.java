@@ -9,8 +9,8 @@ import io.debezium.engine.DebeziumEngine.ChangeConsumer;
 import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.format.Json;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class ReactiveDebeziumEngine {
-    private static final Logger logger = LogManager.getLogger(ReactiveDebeziumEngine.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveDebeziumEngine.class);
     
     private final AgentConfig config;
     private DebeziumEngine<?> engine;

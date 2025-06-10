@@ -8,8 +8,8 @@ import com.exoquic.agent.config.AgentConfig;
 import com.exoquic.agent.http.ReactiveHttpClient;
 import com.exoquic.agent.model.ChangeEventType;
 import io.debezium.engine.ChangeEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -20,7 +20,7 @@ import java.util.*;
  * Uses a reactive approach with Project Reactor.
  */
 public class ReactiveEventProcessor {
-    private static final Logger logger = LogManager.getLogger(ReactiveEventProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveEventProcessor.class);
     
     private final ReactiveHttpClient httpClient;
     private final AgentConfig config;

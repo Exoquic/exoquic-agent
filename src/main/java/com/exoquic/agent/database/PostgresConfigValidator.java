@@ -1,8 +1,8 @@
 package com.exoquic.agent.database;
 
 import com.exoquic.agent.config.AgentConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,7 +17,7 @@ import java.util.List;
  * Validates and configures PostgreSQL settings required for logical replication.
  */
 public class PostgresConfigValidator {
-    private static final Logger logger = LogManager.getLogger(PostgresConfigValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(PostgresConfigValidator.class);
     private static final int MAX_RETRIES = 5;
     private static final Duration INITIAL_RETRY_DELAY = Duration.ofSeconds(3);
     private final AgentConfig config;
