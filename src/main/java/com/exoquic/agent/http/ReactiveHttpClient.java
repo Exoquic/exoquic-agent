@@ -6,8 +6,8 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -28,7 +28,7 @@ import java.util.function.Predicate;
  * Uses WebClient from Spring WebFlux for non-blocking HTTP communication.
  */
 public class ReactiveHttpClient {
-    private static final Logger logger = LogManager.getLogger(ReactiveHttpClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReactiveHttpClient.class);
     
     private final WebClient webClient;
     private final Retry retry;

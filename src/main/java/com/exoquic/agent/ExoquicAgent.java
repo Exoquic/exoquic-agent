@@ -4,14 +4,14 @@ import com.exoquic.agent.config.AgentConfig;
 import com.exoquic.agent.debezium.ReactiveDebeziumEngine;
 import com.exoquic.agent.debezium.ReactiveEventProcessor;
 import com.exoquic.agent.http.ReactiveHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 
 import java.util.concurrent.CountDownLatch;
 
 public class ExoquicAgent {
-    private static final Logger logger = LogManager.getLogger(ExoquicAgent.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExoquicAgent.class);
 
     private final ReactiveDebeziumEngine debeziumEngine;
     private final Disposable subscription;
